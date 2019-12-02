@@ -177,6 +177,30 @@ where
 	}
 }
 
+impl<K, V> HasTypeId for BTreeMap<K, V>
+where
+	K: Metadata + 'static,
+	V: Metadata + 'static,
+{
+	fn type_id() -> TypeId {
+		TypeIdCustom::new("BTreeMap", Namespace::prelude(), tuple_meta_type!(K, V)).into()
+	}
+}
+
+impl<K, V> HasTypeDef for BTreeMap<K, V>
+where
+	K: Metadata + 'static,
+	V: Metadata + 'static,
+{
+	fn type_def() -> TypeDef {
+		TypeDefEnum::new(vec![
+			EnumVariantTupleStruct::new("Key", vec![UnnamedField::of::<K>()]).into(),
+			EnumVariantTupleStruct::new("Value", vec![UnnamedField::of::<V>()]).into(),
+		])
+		.into()
+	}
+}
+
 impl<T> HasTypeId for Box<T>
 where
 	T: HasTypeId + ?Sized,
