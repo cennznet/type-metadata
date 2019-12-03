@@ -193,11 +193,7 @@ where
 	V: Metadata + 'static,
 {
 	fn type_def() -> TypeDef {
-		TypeDefEnum::new(vec![
-			EnumVariantTupleStruct::new("Key", vec![UnnamedField::of::<K>()]).into(),
-			EnumVariantTupleStruct::new("Value", vec![UnnamedField::of::<V>()]).into(),
-		])
-		.into()
+		TypeDefStruct::new(vec![NamedField::new("vec", MetaType::new::<[(K, V)]>())]).into()
 	}
 }
 
