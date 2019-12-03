@@ -193,7 +193,7 @@ where
 	V: Metadata + 'static,
 {
 	fn type_def() -> TypeDef {
-		TypeDefStruct::new(vec![NamedField::new("vec", MetaType::new::<[(K, V)]>())]).into()
+		TypeDefStruct::new(vec![NamedField::new("elems", MetaType::new::<[(K, V)]>())]).into()
 	}
 }
 
