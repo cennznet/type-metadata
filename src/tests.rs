@@ -50,15 +50,15 @@ fn primitives() {
 fn prelude_items() {
 	assert_type_id!(
 		Option<u128>,
-		TypeIdCustom::new("Option", Namespace::prelude(), tuple_meta_type!(u128))
+		TypeIdCustom::new("Option".into(), Namespace::prelude(), tuple_meta_type!(u128))
 	);
 	assert_type_id!(
 		Result<bool, String>,
-		TypeIdCustom::new("Result", Namespace::prelude(), tuple_meta_type!(bool, String))
+		TypeIdCustom::new("Result".into(), Namespace::prelude(), tuple_meta_type!(bool, String))
 	);
 	assert_type_id!(
 		PhantomData<i32>,
-		TypeIdCustom::new("PhantomData", Namespace::prelude(), tuple_meta_type!(i32))
+		TypeIdCustom::new("PhantomData".into(), Namespace::prelude(), tuple_meta_type!(i32))
 	)
 }
 
@@ -91,7 +91,7 @@ fn array_primitives() {
 	// vec
 	assert_type_id!(
 		Vec<bool>,
-		TypeIdCustom::new("Vec", Namespace::prelude(), tuple_meta_type![bool])
+		TypeIdCustom::new("Vec".into(), Namespace::prelude(), tuple_meta_type![bool])
 	);
 }
 
@@ -108,8 +108,8 @@ fn struct_with_generics() {
 	{
 		fn type_id() -> TypeId {
 			TypeIdCustom::new(
-				"MyStruct",
-				Namespace::from_module_path(module_path!()).unwrap(),
+				"MyStruct".into(),
+				Namespace::from_module_path(module_path!().into()).unwrap(),
 				tuple_meta_type!(T),
 			)
 			.into()
@@ -121,31 +121,31 @@ fn struct_with_generics() {
 		T: Metadata,
 	{
 		fn type_def() -> TypeDef {
-			TypeDefStruct::new(vec![NamedField::new("data", T::meta_type())]).into()
+			TypeDefStruct::new(vec![NamedField::new("data".into(), T::meta_type())]).into()
 		}
 	}
 
 	// Normal struct
 	let struct_bool_id = TypeIdCustom::new(
-		"MyStruct",
-		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+		"MyStruct".into(),
+		Namespace::new(vec!["type_metadata".into(), "tests".into()]).unwrap(),
 		tuple_meta_type!(bool),
 	);
 	assert_type_id!(MyStruct<bool>, struct_bool_id.clone());
 
-	let struct_bool_def = TypeDefStruct::new(vec![NamedField::new("data", bool::meta_type())]).into();
+	let struct_bool_def = TypeDefStruct::new(vec![NamedField::new("data".into(), bool::meta_type())]).into();
 	assert_eq!(<MyStruct<bool>>::type_def(), struct_bool_def);
 
 	// With "`Self` typed" fields
 	type SelfTyped = MyStruct<Box<MyStruct<bool>>>;
 	let expected_type_id = TypeIdCustom::new(
-		"MyStruct",
-		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+		"MyStruct".into(),
+		Namespace::new(vec!["type_metadata".into(), "tests".into()]).unwrap(),
 		vec![<Box<MyStruct<bool>>>::meta_type()],
 	);
 	assert_type_id!(SelfTyped, expected_type_id);
 	assert_eq!(
 		SelfTyped::type_def(),
-		TypeDefStruct::new(vec![NamedField::new("data", <Box<MyStruct<bool>>>::meta_type()),]).into(),
+		TypeDefStruct::new(vec![NamedField::new("data".into(), <Box<MyStruct<bool>>>::meta_type()),]).into(),
 	);
 }
