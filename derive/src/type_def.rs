@@ -68,7 +68,7 @@ fn generate_fields_def(fields: &FieldsList) -> TokenStream2 {
 		};
 		if let Some(i) = ident {
 			quote! {
-				_type_metadata::NamedField::new(stringify!(#i), #meta_type)
+				_type_metadata::NamedField::new(stringify!(#i).into(), #meta_type)
 			}
 		} else {
 			quote! {
@@ -119,7 +119,7 @@ fn generate_c_like_enum_def(variants: &VariantList) -> TokenStream2 {
 			i as u64
 		};
 		quote! {
-			_type_metadata::ClikeEnumVariant::new(stringify!(#name), #discriminant)
+			_type_metadata::ClikeEnumVariant::new(stringify!(#name).into(), #discriminant)
 		}
 	});
 	quote! {
@@ -146,7 +146,7 @@ fn generate_enum_def(data_enum: &DataEnum) -> TokenStream2 {
 
 	let variants_def = variants.into_iter().map(|v| {
 		let ident = &v.ident;
-		let v_name = quote! {stringify!(#ident) };
+		let v_name = quote! {stringify!(#ident).into() };
 		match v.fields {
 			Fields::Named(ref fs) => {
 				let fields = generate_fields_def(&fs.named);

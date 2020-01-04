@@ -118,7 +118,7 @@ where
 	T: Metadata + 'static,
 {
 	fn type_id() -> TypeId {
-		TypeIdCustom::new("Vec", Namespace::prelude(), tuple_meta_type![T]).into()
+		TypeIdCustom::new("Vec".into(), Namespace::prelude(), tuple_meta_type![T]).into()
 	}
 }
 
@@ -127,7 +127,7 @@ where
 	T: Metadata + 'static,
 {
 	fn type_def() -> TypeDef {
-		TypeDefStruct::new(vec![NamedField::new("elems", MetaType::new::<[T]>())]).into()
+		TypeDefStruct::new(vec![NamedField::new("elems".into(), MetaType::new::<[T]>())]).into()
 	}
 }
 
@@ -136,7 +136,7 @@ where
 	T: Metadata + 'static,
 {
 	fn type_id() -> TypeId {
-		TypeIdCustom::new("Option", Namespace::prelude(), tuple_meta_type![T]).into()
+		TypeIdCustom::new("Option".into(), Namespace::prelude(), tuple_meta_type![T]).into()
 	}
 }
 
@@ -146,8 +146,8 @@ where
 {
 	fn type_def() -> TypeDef {
 		TypeDefEnum::new(vec![
-			EnumVariantUnit::new("None").into(),
-			EnumVariantTupleStruct::new("Some", vec![UnnamedField::of::<T>()]).into(),
+			EnumVariantUnit::new("None".into()).into(),
+			EnumVariantTupleStruct::new("Some".into(), vec![UnnamedField::of::<T>()]).into(),
 		])
 		.into()
 	}
@@ -159,7 +159,7 @@ where
 	E: Metadata + 'static,
 {
 	fn type_id() -> TypeId {
-		TypeIdCustom::new("Result", Namespace::prelude(), tuple_meta_type!(T, E)).into()
+		TypeIdCustom::new("Result".into(), Namespace::prelude(), tuple_meta_type!(T, E)).into()
 	}
 }
 
@@ -170,8 +170,8 @@ where
 {
 	fn type_def() -> TypeDef {
 		TypeDefEnum::new(vec![
-			EnumVariantTupleStruct::new("Ok", vec![UnnamedField::of::<T>()]).into(),
-			EnumVariantTupleStruct::new("Err", vec![UnnamedField::of::<E>()]).into(),
+			EnumVariantTupleStruct::new("Ok".into(), vec![UnnamedField::of::<T>()]).into(),
+			EnumVariantTupleStruct::new("Err".into(), vec![UnnamedField::of::<E>()]).into(),
 		])
 		.into()
 	}
@@ -183,7 +183,7 @@ where
 	V: Metadata + 'static,
 {
 	fn type_id() -> TypeId {
-		TypeIdCustom::new("BTreeMap", Namespace::prelude(), tuple_meta_type!(K, V)).into()
+		TypeIdCustom::new("BTreeMap".into(), Namespace::prelude(), tuple_meta_type!(K, V)).into()
 	}
 }
 
@@ -193,7 +193,7 @@ where
 	V: Metadata + 'static,
 {
 	fn type_def() -> TypeDef {
-		TypeDefStruct::new(vec![NamedField::new("elems", MetaType::new::<[(K, V)]>())]).into()
+		TypeDefStruct::new(vec![NamedField::new("elems".into(), MetaType::new::<[(K, V)]>())]).into()
 	}
 }
 
@@ -289,7 +289,7 @@ impl HasTypeId for String {
 
 impl HasTypeDef for String {
 	fn type_def() -> TypeDef {
-		TypeDefStruct::new(vec![NamedField::new("vec", MetaType::new::<Vec<u8>>())]).into()
+		TypeDefStruct::new(vec![NamedField::new("vec".into(), MetaType::new::<Vec<u8>>())]).into()
 	}
 }
 
@@ -298,7 +298,7 @@ where
 	T: Metadata + ?Sized,
 {
 	fn type_id() -> TypeId {
-		TypeIdCustom::new("PhantomData", Namespace::prelude(), vec![T::meta_type()]).into()
+		TypeIdCustom::new("PhantomData".into(), Namespace::prelude(), vec![T::meta_type()]).into()
 	}
 }
 

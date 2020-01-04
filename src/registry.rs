@@ -77,7 +77,7 @@ pub struct TypeIdDef {
 pub struct Registry {
 	/// The cache for already registered strings.
 	#[serde(rename = "strings")]
-	string_table: Interner<&'static str>,
+	string_table: Interner<String>,
 	/// The cache for already registered types.
 	///
 	/// This is just an accessor to the actual database
@@ -122,7 +122,7 @@ impl Registry {
 
 	/// Registeres the given string into the registry and returns
 	/// its respective associated string symbol.
-	pub fn register_string(&mut self, string: &'static str) -> UntrackedSymbol<&'static str> {
+	pub fn register_string(&mut self, string: String) -> UntrackedSymbol<String> {
 		self.string_table.intern_or_get(string).1.into_untracked()
 	}
 

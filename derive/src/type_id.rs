@@ -47,8 +47,8 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 		impl #impl_generics _type_metadata::HasTypeId for #ident #ty_generics #where_clause {
 			fn type_id() -> _type_metadata::TypeId {
 				_type_metadata::TypeIdCustom::new(
-					stringify!(#ident),
-					_type_metadata::Namespace::from_module_path(module_path!())
+					stringify!(#ident).into(),
+					_type_metadata::Namespace::from_module_path(module_path!().into())
 						.expect("namespace from module path cannot fail"),
 					__core::vec![ #( #generic_type_ids ),* ],
 				).into()

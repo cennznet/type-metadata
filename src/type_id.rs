@@ -92,7 +92,7 @@ impl Namespace {
 	///
 	/// Module path is generally obtained from the `module_path!` Rust macro.
 	pub fn from_module_path(module_path: <MetaForm as Form>::String) -> Result<Self, NamespaceError> {
-		Self::new(module_path.split("::"))
+		Self::new(module_path.split("::").map(|s| s.into()))
 	}
 
 	/// Creates the prelude namespace.
@@ -210,7 +210,7 @@ impl IntoCompact for TypeIdCustom {
 
 impl TypeIdCustom {
 	/// Creates a new type identifier to refer to a custom type definition.
-	pub fn new<T>(name: &'static str, namespace: Namespace, type_params: T) -> Self
+	pub fn new<T>(name: String, namespace: Namespace, type_params: T) -> Self
 	where
 		T: IntoIterator<Item = MetaType>,
 	{
@@ -337,33 +337,38 @@ mod tests {
 	#[test]
 	fn namespace_ok() {
 		assert_eq!(
-			Namespace::new(vec!["hello"]),
+			Namespace::new(vec!["hello".into()]),
 			Ok(Namespace {
-				segments: vec!["hello"]
+				segments: vec!["hello".into()]
 			})
 		);
 		assert_eq!(
-			Namespace::new(vec!["Hello", "World"]),
+			Namespace::new(vec!["Hello".into(), "World".into()]),
 			Ok(Namespace {
-				segments: vec!["Hello", "World"]
+				segments: vec!["Hello".into(), "World".into()]
 			})
 		);
-		assert_eq!(Namespace::new(vec!["_"]), Ok(Namespace { segments: vec!["_"] }));
+		assert_eq!(
+			Namespace::new(vec!["_".into()]),
+			Ok(Namespace {
+				segments: vec!["_".into()]
+			})
+		);
 	}
 
 	#[test]
 	fn namespace_err() {
 		assert_eq!(Namespace::new(vec![]), Err(NamespaceError::MissingSegments));
 		assert_eq!(
-			Namespace::new(vec![""]),
+			Namespace::new(vec!["".into()]),
 			Err(NamespaceError::InvalidIdentifier { segment: 0 })
 		);
 		assert_eq!(
-			Namespace::new(vec!["1"]),
+			Namespace::new(vec!["1".into()]),
 			Err(NamespaceError::InvalidIdentifier { segment: 0 })
 		);
 		assert_eq!(
-			Namespace::new(vec!["Hello", ", World!"]),
+			Namespace::new(vec!["Hello".into(), ", World!".into()]),
 			Err(NamespaceError::InvalidIdentifier { segment: 1 })
 		);
 	}
@@ -371,13 +376,13 @@ mod tests {
 	#[test]
 	fn namespace_from_module_path() {
 		assert_eq!(
-			Namespace::from_module_path("hello::world"),
+			Namespace::from_module_path("hello::world".into()),
 			Ok(Namespace {
-				segments: vec!["hello", "world"]
+				segments: vec!["hello".into(), "world".into()]
 			})
 		);
 		assert_eq!(
-			Namespace::from_module_path("::world"),
+			Namespace::from_module_path("::world".into()),
 			Err(NamespaceError::InvalidIdentifier { segment: 0 })
 		);
 	}
