@@ -157,6 +157,8 @@ pub enum TypeIdPrimitive {
 	U64,
 	/// `u128`
 	U128,
+	/// no rust equivalent
+	U256,
 	/// `i8`
 	I8,
 	/// `i16`
@@ -167,6 +169,8 @@ pub enum TypeIdPrimitive {
 	I64,
 	/// `i128`
 	I128,
+	/// no rust equivalent
+	I256,
 }
 
 /// A type identifier for custom type definitions.
