@@ -476,7 +476,7 @@ impl IntoCompact for EnumVariantUnit {
 
 impl EnumVariantUnit {
 	/// Creates a new unit struct variant.
-	pub fn new(name: &'static str) -> Self {
+	pub fn new(name: String) -> Self {
 		Self { name }
 	}
 }

@@ -61,7 +61,7 @@ pub trait Form {
 pub enum MetaForm {}
 
 impl Form for MetaForm {
-	type String = &'static str;
+	type String = String;
 	type TypeId = MetaType;
 	type IndirectTypeId = MetaType;
 }
@@ -77,7 +77,7 @@ impl Form for MetaForm {
 pub enum CompactForm {}
 
 impl Form for CompactForm {
-	type String = UntrackedSymbol<&'static str>;
+	type String = UntrackedSymbol<String>;
 	type TypeId = UntrackedSymbol<AnyTypeId>;
 	type IndirectTypeId = Self::TypeId;
 }
