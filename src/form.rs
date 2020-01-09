@@ -34,7 +34,7 @@
 
 use crate::tm_std::*;
 use crate::{interner::UntrackedSymbol, meta_type::MetaType};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// Trait to control the internal structures of type identifiers and definitions.
 ///
@@ -57,7 +57,7 @@ pub trait Form {
 ///
 /// Allows to be converted into other forms such as compact form
 /// through the registry and `IntoCompact`.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Serialize, Debug)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Serialize, Deserialize, Debug)]
 pub enum MetaForm {}
 
 impl Form for MetaForm {
@@ -73,7 +73,7 @@ impl Form for MetaForm {
 /// This resolves some lifetime issues with self-referential structs (such as
 /// the registry itself) but can no longer be used to resolve to the original
 /// underlying data.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Serialize, Debug)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Serialize, Deserialize, Debug)]
 pub enum CompactForm {}
 
 impl Form for CompactForm {

@@ -38,7 +38,10 @@ use crate::{
 	meta_type::MetaType,
 	TypeDef, TypeId,
 };
-use serde::Serialize;
+use serde::{
+	de::{self, Deserializer, MapAccess, Visitor},
+	Deserialize, Serialize,
+};
 
 /// Compacts the implementor using a registry.
 pub trait IntoCompact {
@@ -52,7 +55,7 @@ pub trait IntoCompact {
 /// The pair of associated type identifier and structure.
 ///
 /// This exists only as compactified version and is part of the registry.
-#[derive(Debug, PartialEq, Eq, Serialize)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TypeIdDef {
 	/// The identifier of the type.
 	id: TypeId<CompactForm>,
@@ -86,7 +89,7 @@ pub struct Registry {
 	type_table: Interner<AnyTypeId>,
 	/// The database where registered types actually reside.
 	///
-	/// This is going to be serialized upon serlialization.
+	/// This is going to be serialized upon serialization.
 	#[serde(serialize_with = "serialize_registry_types")]
 	types: BTreeMap<UntrackedSymbol<core::any::TypeId>, TypeIdDef>,
 }
@@ -102,6 +105,71 @@ where
 {
 	let types = types.values().collect::<Vec<_>>();
 	types.serialize(serializer)
+}
+
+struct RegistryVisitor;
+
+impl Visitor<'static> for RegistryVisitor {
+	type Value = Registry;
+
+	fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+		formatter.write_str("struct Registry")
+	}
+
+	fn visit_map<V>(self, mut map: V) -> Result<Self::Value, V::Error>
+	where
+		V: MapAccess<'static>,
+	{
+		#[derive(Deserialize)]
+		#[serde(field_identifier, rename_all = "lowercase")]
+		enum Field {
+			Strings,
+			Types,
+		}
+
+		let mut strings = None;
+		let mut types = None;
+		while let Some(key) = map.next_key()? {
+			match key {
+				Field::Strings => {
+					if strings.is_some() {
+						return Err(de::Error::duplicate_field("strings"));
+					}
+					strings = Some(map.next_value()?);
+				}
+				Field::Types => {
+					if types.is_some() {
+						return Err(de::Error::duplicate_field("types"));
+					}
+					types = Some(map.next_value()?);
+				}
+			}
+		}
+
+		let types: Vec<TypeIdDef> = types.ok_or_else(|| de::Error::missing_field("strings"))?;
+		let types = types
+			.into_iter()
+			.enumerate()
+			.map(|(i, t)| (UntrackedSymbol::<AnyTypeId>::from(i + 1), t))
+			.collect::<BTreeMap<UntrackedSymbol<AnyTypeId>, TypeIdDef>>();
+
+		let registry = Registry {
+			string_table: strings.ok_or_else(|| de::Error::missing_field("strings"))?,
+			type_table: Interner::new(),
+			types,
+		};
+		Ok(registry)
+	}
+}
+
+impl Deserialize<'static> for Registry {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: Deserializer<'static>,
+	{
+		const FIELDS: &[&str] = &["strings", "types"];
+		deserializer.deserialize_struct("Registry", FIELDS, RegistryVisitor)
+	}
 }
 
 impl Default for Registry {
@@ -163,5 +231,20 @@ impl Registry {
 			);
 		}
 		symbol
+	}
+
+	/// returns an iterator over type definitions contained within the registry
+	pub fn definitions(&self) -> impl Iterator<Item = &TypeIdDef> {
+		self.types.values()
+	}
+
+	/// Returns an iterator over Key/Value pairs of TypeId and Id/Definitions
+	pub fn iter(&self) -> impl Iterator<Item = (&UntrackedSymbol<AnyTypeId>, &TypeIdDef)> {
+		self.types.iter()
+	}
+
+	/// Returns an iterator over all interned strings
+	pub fn strings(&self) -> impl Iterator<Item = &'static str> + '_ {
+		self.string_table.symbols().copied()
 	}
 }

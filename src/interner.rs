@@ -24,18 +24,30 @@
 //! and is later used for compact serialization within the registry.
 
 use crate::tm_std::*;
-use serde::Serialize;
+use serde::{
+	de::{Deserializer, SeqAccess, Visitor},
+	Deserialize, Serialize,
+};
 
 /// A symbol that is not lifetime tracked.
 ///
 /// This can be used by self-referential types but
 /// can no longer be used to resolve instances.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct UntrackedSymbol<T> {
 	id: NonZeroU32,
 	#[serde(skip)]
 	marker: PhantomData<fn() -> T>,
+}
+
+impl<T> From<usize> for UntrackedSymbol<T> {
+	fn from(id: usize) -> UntrackedSymbol<T> {
+		UntrackedSymbol {
+			id: NonZeroU32::new(id as u32).expect("Id must not be zero"),
+			marker: PhantomData,
+		}
+	}
 }
 
 /// A symbol from an interner.
@@ -97,6 +109,48 @@ pub struct Interner<T> {
 	vec: Vec<T>,
 }
 
+struct InternerVisitor<T> {
+	_marker: PhantomData<T>,
+}
+
+impl<'de, T> Visitor<'de> for InternerVisitor<T>
+where
+	T: Ord + Deserialize<'de> + Copy,
+{
+	type Value = Interner<T>;
+
+	fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+		formatter.write_str("sequence Interner")
+	}
+
+	fn visit_seq<V>(self, mut seq: V) -> Result<Self::Value, V::Error>
+	where
+		V: SeqAccess<'de>,
+	{
+		let mut vec = Vec::new();
+		let mut map = BTreeMap::new();
+		let mut index = 0;
+		while let Some(v) = seq.next_element()? {
+			vec.push(v);
+			map.insert(v, index);
+			index += 1;
+		}
+		Ok(Interner { map, vec })
+	}
+}
+
+impl<'de, T> Deserialize<'de> for Interner<T>
+where
+	T: Ord + Deserialize<'de> + Copy,
+{
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		deserializer.deserialize_seq(InternerVisitor { _marker: PhantomData })
+	}
+}
+
 impl<T> Interner<T>
 where
 	T: Ord,
@@ -156,6 +210,13 @@ where
 			return None;
 		}
 		self.vec.get((sym.id.get() - 1) as usize)
+	}
+
+	/// Iterate over all symbols, disregarding the mapping from
+	/// compact identifier -> symbol
+	/// these elements are strictly ordered
+	pub fn symbols(&self) -> impl Iterator<Item = &T> {
+		self.vec.iter()
 	}
 }
 

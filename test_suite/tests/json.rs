@@ -20,13 +20,15 @@
 extern crate alloc;
 
 #[cfg(not(feature = "std"))]
-use alloc::{vec, vec::Vec};
+use alloc::{boxed::Box, collections::BTreeMap, string::String, string::ToString, vec, vec::Vec};
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
-use type_metadata::{form::CompactForm, IntoCompact as _, Metadata, Registry, TypeDef, TypeId};
+use type_metadata::{
+	form::CompactForm, interner::UntrackedSymbol, IntoCompact as _, Metadata, Registry, TypeDef, TypeId,
+};
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct TypeIdDef {
 	id: TypeId<CompactForm>,
 	def: TypeDef<CompactForm>,
@@ -45,7 +47,10 @@ where
 		def: type_def,
 	};
 
-	assert_eq!(serde_json::to_value(id_def).unwrap(), expected_json,);
+	let ser = serde_json::to_value(&id_def).unwrap();
+	assert_eq!(ser, expected_json);
+	let deser: TypeIdDef = serde_json::from_value(ser).unwrap();
+	assert_eq!(deser, id_def);
 }
 
 #[test]
@@ -413,5 +418,25 @@ fn test_registry() {
 		]
 	});
 
-	assert_eq!(serde_json::to_value(registry).unwrap(), expected_json,);
+	let serialized_registry = serde_json::to_value(&registry).unwrap();
+	assert_eq!(serialized_registry, expected_json,);
+
+	let serialized_registry = serialized_registry.to_string();
+	let deserialized_registry: Registry = serde_json::from_str(string_to_static_str(serialized_registry)).unwrap();
+
+	// since type_table is not serialized, we just compare strings & types
+	// to test if deserialization works
+
+	let ser_vec = registry.strings();
+	let deser_vec = deserialized_registry.strings();
+	assert!(ser_vec.eq(deser_vec));
+
+	let ser_btree = registry.iter();
+	let deser_btree = deserialized_registry.iter();
+	assert!(ser_btree.eq(deser_btree));
+}
+
+// [WARN!!!!] Leaks the memory of s
+fn string_to_static_str(s: String) -> &'static str {
+	Box::leak(s.into_boxed_str())
 }
